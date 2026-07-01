@@ -17,10 +17,10 @@ def _object_id(note_id: str) -> ObjectId:
 
 @router.get("")
 async def list_notes():
-    """Return all notes, most recently updated first."""
+    """Return all notes: pinned first, then most recently updated."""
     collection = get_notes_collection()
     notes = []
-    async for note in collection.find().sort("updated_at", -1):
+    async for note in collection.find().sort([("pinned", -1), ("updated_at", -1)]):
         notes.append(note_helper(note))
     return notes
 
@@ -32,6 +32,7 @@ async def create_note(payload: NoteCreate):
     document = {
         "title": payload.title,
         "content": payload.content,
+        "pinned": False,
         "created_at": timestamp,
         "updated_at": timestamp,
     }
@@ -59,6 +60,20 @@ async def update_note(note_id: str, payload: NoteUpdate):
     )
     if result.matched_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
+    updated = await collection.find_one({"_id": oid})
+    return note_helper(updated)
+
+
+@router.patch("/{note_id}/pin")
+async def toggle_pin(note_id: str):
+    """Flip a note's pinned state. Pinned notes are sorted to the top of the list."""
+    collection = get_notes_collection()
+    oid = _object_id(note_id)
+    note = await collection.find_one({"_id": oid})
+    if not note:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
+    new_pinned = not note.get("pinned", False)
+    await collection.update_one({"_id": oid}, {"$set": {"pinned": new_pinned}})
     updated = await collection.find_one({"_id": oid})
     return note_helper(updated)
 

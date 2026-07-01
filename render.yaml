@@ -1,0 +1,82 @@
+# Render Blueprint — deploys this repo as 4 services, split by branch:
+#   staging     -> notes-api-staging  + notes-web-staging
+#   main        -> notes-api-prod     + notes-web-prod
+#
+# First-time setup (once):
+#   1. Push this repo to GitHub.
+#   2. In Render: New -> Blueprint -> select this repo -> Render reads this file
+#      and creates all 4 services in one go.
+#   3. For each *-staging service, in Render dashboard set "Auto-Deploy" branch = staging.
+#      For each *-prod service, set branch = main.
+#   4. Fill in the env vars marked sync: false in the Render dashboard (secrets are
+#      never stored in this file / in git).
+#
+# After that: pushing to `staging` redeploys the two staging services, pushing to
+# `main` redeploys the two production services. No manual deploy steps needed.
+
+services:
+  # ---------- BACKEND: staging ----------
+  - type: web
+    name: notes-api-staging
+    runtime: python
+    branch: staging
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: MONGODB_URI
+        sync: false          # set to your staging Atlas URI (or a separate staging cluster/DB)
+      - key: DATABASE_NAME
+        value: notes_app_staging
+      - key: CORS_ORIGINS
+        value: https://notes-web-staging.onrender.com
+
+  # ---------- BACKEND: production ----------
+  - type: web
+    name: notes-api-prod
+    runtime: python
+    branch: main
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: MONGODB_URI
+        sync: false          # set to your production Atlas URI
+      - key: DATABASE_NAME
+        value: notes_app
+      - key: CORS_ORIGINS
+        value: https://notes-web-prod.onrender.com
+
+  # ---------- FRONTEND: staging ----------
+  - type: web
+    name: notes-web-staging
+    runtime: static
+    branch: staging
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://notes-api-staging.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  # ---------- FRONTEND: production ----------
+  - type: web
+    name: notes-web-prod
+    runtime: static
+    branch: main
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://notes-api-prod.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
