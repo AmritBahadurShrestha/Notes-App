@@ -3,7 +3,14 @@ import NoteCard from "./components/NoteCard.jsx";
 import NoteForm from "./components/NoteForm.jsx";
 import Modal from "./components/Modal.jsx";
 import EmptyState from "./components/EmptyState.jsx";
-import { getNotes, createNote, updateNote, deleteNote } from "./services/api.js";
+import { getNotes, createNote, updateNote, deleteNote, togglePin } from "./services/api.js";
+
+function sortByPinned(list) {
+  return [...list].sort((a, b) => {
+    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+    return new Date(b.updated_at) - new Date(a.updated_at);
+  });
+}
 
 export default function App() {
   const [notes, setNotes] = useState([]);
@@ -58,6 +65,20 @@ export default function App() {
     closeForm();
   }
 
+  async function handleTogglePin(note) {
+    const previous = notes;
+    setNotes((prev) =>
+      sortByPinned(prev.map((n) => (n.id === note.id ? { ...n, pinned: !n.pinned } : n)))
+    );
+    try {
+      const updated = await togglePin(note.id);
+      setNotes((prev) => sortByPinned(prev.map((n) => (n.id === updated.id ? updated : n))));
+    } catch (err) {
+      setNotes(previous);
+      setError("Couldn't update that note. Try again.");
+    }
+  }
+
   async function confirmDelete() {
     if (!noteToDelete) return;
     const id = noteToDelete.id;
@@ -84,7 +105,12 @@ export default function App() {
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 bg-board/90 backdrop-blur-sm border-b border-ink/10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center gap-4 justify-between">
-          <h1 className="font-display text-3xl text-ink">Notes</h1>
+          <h1 className="font-display text-3xl text-ink flex items-center gap-2">
+            Notes
+            <span className="font-body text-xs font-semibold text-inkfaint bg-ink/5 rounded-full px-2 py-1">
+              {notes.length}
+            </span>
+          </h1>
 
           <div className="flex items-center gap-3 flex-1 justify-end min-w-[240px]">
             <input
@@ -123,6 +149,7 @@ export default function App() {
                 note={note}
                 onEdit={openEditForm}
                 onDelete={setNoteToDelete}
+                onTogglePin={handleTogglePin}
               />
             ))}
           </div>

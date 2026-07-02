@@ -17,6 +17,7 @@ class NoteResponse(BaseModel):
     id: str
     title: str
     content: str
+    pinned: bool
     created_at: datetime
     updated_at: datetime
 
@@ -27,6 +28,7 @@ def note_helper(note: dict) -> dict:
         "id": str(note["_id"]),
         "title": note["title"],
         "content": note.get("content", ""),
+        "pinned": note.get("pinned", False),
         "created_at": note["created_at"],
         "updated_at": note["updated_at"],
     }

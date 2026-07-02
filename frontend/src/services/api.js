@@ -12,6 +12,8 @@ export const createNote = (note) => api.post("/api/notes", note).then((res) => r
 export const updateNote = (id, note) =>
   api.put(`/api/notes/${id}`, note).then((res) => res.data);
 
+export const togglePin = (id) => api.patch(`/api/notes/${id}/pin`).then((res) => res.data);
+
 export const deleteNote = (id) => api.delete(`/api/notes/${id}`);
 
 export default api;

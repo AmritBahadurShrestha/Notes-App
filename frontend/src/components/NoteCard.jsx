@@ -15,14 +15,16 @@ function formatDate(iso) {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
-export default function NoteCard({ note, onEdit, onDelete }) {
+export default function NoteCard({ note, onEdit, onDelete, onTogglePin }) {
   const hash = hashString(note.id);
   const tape = TAPE_COLORS[hash % TAPE_COLORS.length];
   const rotation = ROTATIONS[hash % ROTATIONS.length];
 
   return (
     <div
-      className={`group relative bg-paper rounded-sm shadow-note hover:shadow-noteHover ${rotation} hover:rotate-0 transition-all duration-200 p-5 pt-7`}
+      className={`group relative bg-paper rounded-sm shadow-note hover:shadow-noteHover ${rotation} hover:rotate-0 transition-all duration-200 p-5 pt-7 ${
+        note.pinned ? "ring-1 ring-amber/50" : ""
+      }`}
     >
       {/* washi tape */}
       <div
@@ -31,7 +33,18 @@ export default function NoteCard({ note, onEdit, onDelete }) {
 
       <div className="flex items-start justify-between gap-2">
         <h3 className="font-display text-xl text-ink leading-snug break-words">{note.title}</h3>
-        <div className="flex-shrink-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex-shrink-0 flex gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+          <button
+            onClick={() => onTogglePin(note)}
+            aria-label={note.pinned ? "Unpin note" : "Pin note"}
+            title={note.pinned ? "Unpin note" : "Pin note"}
+            className={`p-1.5 rounded hover:bg-ink/10 ${note.pinned ? "text-amber" : "text-inkfaint hover:text-ink"}`}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill={note.pinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+              <path d="M12 17v5" />
+              <path d="M9 3h6l1 6 3 2v2H5v-2l3-2Z" />
+            </svg>
+          </button>
           <button
             onClick={() => onEdit(note)}
             aria-label="Edit note"
