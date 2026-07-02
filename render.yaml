@@ -59,7 +59,7 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        value: https://notes-api-staging.onrender.com
+        value: https://notes-api-staging-mbgt.onrender.com
     routes:
       - type: rewrite
         source: /*
