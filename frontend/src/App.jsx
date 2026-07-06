@@ -79,6 +79,19 @@ export default function App() {
     }
   }
 
+  async function handleDuplicate(note) {
+    setError("");
+    try {
+      const copy = await createNote({
+        title: `${note.title} (copy)`,
+        content: note.content,
+      });
+      setNotes((prev) => sortByPinned([copy, ...prev]));
+    } catch (err) {
+      setError("Couldn't duplicate that note. Try again.");
+    }
+  }
+
   async function confirmDelete() {
     if (!noteToDelete) return;
     const id = noteToDelete.id;
@@ -150,6 +163,7 @@ export default function App() {
                 onEdit={openEditForm}
                 onDelete={setNoteToDelete}
                 onTogglePin={handleTogglePin}
+                onDuplicate={handleDuplicate}
               />
             ))}
           </div>
