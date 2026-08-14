@@ -1,0 +1,55 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+
+updates:
+  # Backend - Python
+  - package-ecosystem: "pip" # See documentation for possible values
+    directory: "/backend" # Location of package manifests
+    target-branch: "main"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+      production-dependencies:
+        dependency-type: "production"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Frontend - React
+  - package-ecosystem: "npm" # See documentation for possible values
+    directory: "/frontend" # Location of package manifests
+    target-branch: "main"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+      production-dependencies:
+        dependency-type: "production"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Docker
+  # - package-ecosystem: "docker"
+  #   directory: "/"
+  #   target-branch: "main"
+  #   schedule:
+  #     interval: "weekly"
+  #   commit-message:
+  #     prefix: "chore(docker)"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "main"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(ci)"
