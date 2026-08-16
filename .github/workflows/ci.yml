@@ -1,4 +1,4 @@
-name: CI
+name: CI-CD Pipeline
 
 # Runs on every PR into staging or main, and on pushes to those branches
 # (Render handles the actual deploy via its own branch-based auto-deploy —
@@ -11,7 +11,7 @@ on:
 
 jobs:
   backend:
-    name: Backend — install & compile check
+    name: Backend — Continuous Integration (CI)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -25,17 +25,24 @@ jobs:
       - run: python -m py_compile app/main.py app/config.py app/database.py app/schemas.py app/routes/notes.py
 
   frontend:
-    name: Frontend — install & build
+    name: Frontend — Continuous Integration (CI)
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
         with:
-          node-version: "20"
+          node-version: "24"
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
-      - run: npm install
-      - run: npm run build
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
